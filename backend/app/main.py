@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from app.language import detecter_langue
+from app.vectorstore import rechercher
+from app.llm import generer_reponse_rag
 
 app = FastAPI()
 
@@ -12,4 +14,10 @@ def read_root():
 @app.post("/chat")
 def chat(message: str):
     langue = detecter_langue(message)
-    return {"reponse": f"Tu as dit : {message}", "langue": langue}
+
+    chunks_trouves = rechercher(message)
+    contexte = "\n\n".join(chunks_trouves)
+
+    reponse = generer_reponse_rag(question=message, contexte=contexte, langue=langue)
+
+    return {"reponse": reponse, "langue": langue}
